@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kitchen ERP</title>
+  <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#e65100">
+<link rel="manifest" href="manifest.json">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: #f5f5f5; }
+
+    /* LOGIN PAGE */
+    #login-page {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 100vh; background: #fff3e0;
+    }
+    #login-page h1 { font-size: 32px; color: #e65100; margin-bottom: 10px; }
+    #login-page p { color: #777; margin-bottom: 30px; font-size: 16px; }
+    #login-page input {
+      width: 300px; padding: 15px; font-size: 18px;
+      margin-bottom: 15px; border: 2px solid #ddd; border-radius: 10px;
+    }
+    #login-page button {
+      width: 300px; padding: 15px; font-size: 20px; font-weight: bold;
+      background: #e65100; color: white; border: none; border-radius: 10px; cursor: pointer;
+    }
+    #login-error { color: red; margin-top: 10px; font-size: 15px; }
+
+    /* MAIN APP */
+    #app-page { display: none; }
+    .topbar {
+      background: #e65100; color: white; padding: 15px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .topbar h2 { font-size: 22px; }
+    .topbar button {
+      background: white; color: #e65100; border: none;
+      padding: 8px 16px; border-radius: 8px; font-size: 15px; cursor: pointer;
+    }
+    .tabs {
+      display: flex; background: #fff; border-bottom: 2px solid #eee;
+    }
+    .tab-btn {
+      flex: 1; padding: 18px; font-size: 18px; font-weight: bold;
+      border: none; background: white; cursor: pointer; color: #555;
+    }
+    .tab-btn.active { background: #fff3e0; color: #e65100; border-bottom: 3px solid #e65100; }
+    .panel { display: none; padding: 20px; max-width: 700px; margin: auto; }
+    .panel.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: white; border-radius: 12px; padding: 16px 20px;
+      margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-info h3 { font-size: 18px; color: #333; }
+    .card-info p { font-size: 14px; color: #888; margin-top: 4px; }
+    .badge-red { background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+    .badge-yellow { background: #fff8e1; color: #f57f17; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+    .badge-green { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 20px; font-size: 13px; }
+    .del-btn {
+      background: #ffebee; color: #c62828; border: none;
+      padding: 10px 16px; border-radius: 8px; font-size: 20px; cursor: pointer;
+    }
+
+    /* FORMS */
+    .form-box {
+      background: white; border-radius: 12px; padding: 20px;
+      margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .form-box h3 { font-size: 18px; margin-bottom: 15px; color: #e65100; }
+    .form-box input, .form-box select, .form-box textarea {
+      width: 100%; padding: 13px; font-size: 16px;
+      margin-bottom: 12px; border: 2px solid #eee; border-radius: 10px;
+    }
+    .form-box button {
+      width: 100%; padding: 15px; font-size: 18px; font-weight: bold;
+      background: #e65100; color: white; border: none; border-radius: 10px; cursor: pointer;
+    }
+    .section-title { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .empty-msg { color: #aaa; font-size: 16px; text-align: center; padding: 30px; }
+
+    /* SHOPPING CHECKBOX */
+    .shop-check { width: 26px; height: 26px; cursor: pointer; margin-right: 12px; }
+    .checked-item h3 { text-decoration: line-through; color: #aaa; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+  <h1>🍳 Kitchen ERP</h1>
+  <p>Welcome! Please login to continue</p>
+  <input id="login-name" type="text" placeholder="Your name" />
+  <input id="login-pass" type="password" placeholder="Password" />
+  <button onclick="doLogin()">Login</button>
+  <p id="login-error"></p>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-page">
+  <div class="topbar">
+    <h2>🍳 Kitchen ERP</h2>
+    <div>
+      <span id="welcome-msg" style="margin-right:15px; font-size:15px;"></span>
+      <button onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('pantry')">🥘 Pantry</button>
+    <button class="tab-btn" onclick="showTab('recipes')">📖 Recipes</button>
+    <button class="tab-btn" onclick="showTab('shopping')">🛒 Shopping</button>
+  </div>
+
+  <!-- PANTRY PANEL -->
+  <div id="panel-pantry" class="panel active">
+    <div id="add-inventory-form" class="form-box">
+      <h3>➕ Add Item to Pantry</h3>
+      <input id="inv-name" placeholder="Item name (e.g. Rice)" />
+      <input id="inv-qty" placeholder="Quantity (e.g. 5)" />
+      <input id="inv-unit" placeholder="Unit (e.g. kg, litres, packet)" />
+      <input id="inv-exp" type="date" />
+      <input id="inv-cat" placeholder="Category (e.g. Grain, Spice)" />
+      <button onclick="addInventory()">Add to Pantry</button>
+    </div>
+    <p class="section-title">What's in your Pantry</p>
+    <div id="inv-list"></div>
+  </div>
+
+  <!-- RECIPES PANEL -->
+  <div id="panel-recipes" class="panel">
+    <div id="add-recipe-form" class="form-box">
+      <h3>➕ Add Recipe</h3>
+      <input id="rec-name" placeholder="Recipe name (e.g. Dal Tadka)" />
+      <textarea id="rec-inst" rows="3" placeholder="Instructions (e.g. Boil dal, add tadka...)"></textarea>
+      <button onclick="addRecipe()">Add Recipe</button>
+    </div>
+    <p class="section-title">All Recipes</p>
+    <div id="rec-list"></div>
+  </div>
+
+  <!-- SHOPPING PANEL -->
+  <div id="panel-shopping" class="panel">
+    <div id="add-shopping-form" class="form-box">
+      <h3>➕ Add to Shopping List</h3>
+      <input id="shop-name" placeholder="Item to buy (e.g. Tomatoes)" />
+      <input id="shop-cost" type="number" placeholder="Estimated cost in ₹" />
+      <button onclick="addShopping()">Add to List</button>
+    </div>
+    <p class="section-title">Shopping List</p>
+    <div id="shop-list"></div>
+    <div class="card" style="background:#fff3e0;">
+      <strong style="font-size:18px;">Total Estimated Cost</strong>
+      <strong style="font-size:22px; color:#e65100;" id="shop-total">₹0</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = "http://192.168.0.104:8000";
+  // Language based on role
+function getLang() {
+  return currentUser.role === "admin" ? "en" : "te";
+}
+  let currentUser = null;
+
+  // ===== LOGIN =====
+  async function doLogin() {
+    const name = document.getElementById("login-name").value.trim();
+    const pass = document.getElementById("login-pass").value.trim();
+    if (!name || !pass) { document.getElementById("login-error").textContent = "Please enter name and password"; return; }
+    try {
+      const res = await fetch(`${API}/login?name=${encodeURIComponent(name)}&password=${encodeURIComponent(pass)}`, { method: "POST" });
+      if (!res.ok) { document.getElementById("login-error").textContent = "Wrong name or password. Try again."; return; }
+      currentUser = await res.json();
+      document.getElementById("login-page").style.display = "none";
+      document.getElementById("app-page").style.display = "block";
+      document.getElementById("welcome-msg").textContent = `Hi, ${currentUser.name}!`;
+      applyRoleAccess();
+      loadAll();
+    } catch(e) {
+      document.getElementById("login-error").textContent = "Cannot connect to server. Make sure backend is running.";
+    }
+  }
+
+  function doLogout() {
+    currentUser = null;
+    document.getElementById("login-page").style.display = "flex";
+    document.getElementById("app-page").style.display = "none";
+    document.getElementById("login-name").value = "";
+    document.getElementById("login-pass").value = "";
+  }
+
+  // ===== ROLE ACCESS =====
+  // Mom (member) cannot add or delete — only view and tick shopping
+  function applyRoleAccess() {
+  if (currentUser.role === "member") {
+    // Hide add forms for member
+    document.getElementById("add-inventory-form").style.display = "none";
+    document.getElementById("add-recipe-form").style.display = "none";
+    document.getElementById("add-shopping-form").style.display = "none";
+
+    // Change all text to Telugu for Amma
+    document.querySelector(".tab-btn:nth-child(1)").textContent = "🥘 వంటిల్లు";
+    document.querySelector(".tab-btn:nth-child(2)").textContent = "📖 వంటకాలు";
+    document.querySelector(".tab-btn:nth-child(3)").textContent = "🛒 కొనుగోలు";
+    document.getElementById("welcome-msg").textContent = 
+      `నమస్కారం, ${currentUser.name}!`;
+    document.querySelector(".topbar h2").textContent = "🍳 మన వంటిల్లు";
+
+  } else {
+    // Admin sees English
+    document.querySelector(".tab-btn:nth-child(1)").textContent = "🥘 Pantry";
+    document.querySelector(".tab-btn:nth-child(2)").textContent = "📖 Recipes";
+    document.querySelector(".tab-btn:nth-child(3)").textContent = "🛒 Shopping";
+    document.getElementById("welcome-msg").textContent = 
+      `Hi, ${currentUser.name}!`;
+    document.querySelector(".topbar h2").textContent = "🍳 Kitchen ERP";
+  }
+}
+
+  // ===== TABS =====
+  function showTab(tab) {
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("panel-" + tab).classList.add("active");
+    event.target.classList.add("active");
+  }
+
+  // ===== LOAD ALL DATA =====
+  function loadAll() { loadInventory(); loadRecipes(); loadShopping(); }
+
+  // ===== INVENTORY =====
+  async function loadInventory() {
+    const res = await fetch(`${API}/inventory`);
+    const items = await res.json();
+    const list = document.getElementById("inv-list");
+    if (items.length === 0) { list.innerHTML = `<p class="empty-msg">${currentUser.role === "member" ? "వంటిల్లు ఖాళీగా ఉంది" : "Pantry is empty. Add items above."}</p>`;; return; }
+    list.innerHTML = "";
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "card";
+      const du = daysUntil(item.expiry_date);
+      let badge = "";
+      if (du !== null) {
+        if (du < 0) badge = `<span class="badge-red">Expired</span>`;
+        else if (du === 0) badge = `<span class="badge-yellow">Expires Today!</span>`;
+        else if (du <= 3) badge = `<span class="badge-yellow">${du} days left</span>`;
+        else badge = `<span class="badge-green">Exp: ${item.expiry_date}</span>`;
+      }
+      div.innerHTML = `
+        <div class="card-info">
+          <h3>${item.name} ${badge}</h3>
+          <p>${item.quantity || ""} ${item.unit || ""} ${item.category ? "• " + item.category : ""}</p>
+        </div>
+        ${currentUser.role === "admin" ? `<button class="del-btn" onclick="deleteInventory(${item.id})">🗑</button>` : ""}
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  async function addInventory() {
+    const body = {
+      name: document.getElementById("inv-name").value,
+      quantity: document.getElementById("inv-qty").value,
+      unit: document.getElementById("inv-unit").value,
+      expiry_date: document.getElementById("inv-exp").value || null,
+      category: document.getElementById("inv-cat").value
+    };
+    await fetch(`${API}/inventory`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    document.getElementById("inv-name").value = "";
+    document.getElementById("inv-qty").value = "";
+    document.getElementById("inv-unit").value = "";
+    document.getElementById("inv-exp").value = "";
+    document.getElementById("inv-cat").value = "";
+    loadInventory();
+  }
+
+  async function deleteInventory(id) {
+    await fetch(`${API}/inventory/${id}`, { method: "DELETE" });
+    loadInventory();
+  }
+
+  // ===== RECIPES =====
+  async function loadRecipes() {
+    const res = await fetch(`${API}/recipes`);
+    const items = await res.json();
+    const list = document.getElementById("rec-list");
+    if (items.length === 0) { list.innerHTML = `<p class="empty-msg">${currentUser.role === "member" ? "వంటకాలు ఏమీ లేవు" : "No recipes yet. Add one above."}</p>`;; return; }
+    list.innerHTML = "";
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <div class="card-info">
+          <h3>${item.name}</h3>
+          <p>${item.instructions || "No instructions added"}</p>
+        </div>
+        ${currentUser.role === "admin" ? `<button class="del-btn" onclick="deleteRecipe(${item.id})">🗑</button>` : ""}
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  async function addRecipe() {
+    const body = {
+      name: document.getElementById("rec-name").value,
+      instructions: document.getElementById("rec-inst").value,
+      created_by: currentUser.id
+    };
+    await fetch(`${API}/recipes`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    document.getElementById("rec-name").value = "";
+    document.getElementById("rec-inst").value = "";
+    loadRecipes();
+  }
+
+  async function deleteRecipe(id) {
+    await fetch(`${API}/recipes/${id}`, { method: "DELETE" });
+    loadRecipes();
+  }
+
+  // ===== SHOPPING =====
+  async function loadShopping() {
+    const res = await fetch(`${API}/shopping`);
+    const items = await res.json();
+    const list = document.getElementById("shop-list");
+    if (items.length === 0) { list.innerHTML = `<p class="empty-msg">${currentUser.role === "member" ? "కొనుగోలు జాబితా ఖాళీగా ఉంది" : "Shopping list is empty."}</p>`; return; }
+    list.innerHTML = "";
+    let total = 0;
+    items.forEach(item => {
+      total += item.estimated_cost || 0;
+      const div = document.createElement("div");
+      div.className = "card" + (item.is_purchased ? " checked-item" : "");
+      div.innerHTML = `
+        <div style="display:flex; align-items:center;">
+          <input type="checkbox" class="shop-check" ${item.is_purchased ? "checked" : ""} onchange="toggleShopping(${item.id})"/>
+          <div class="card-info">
+            <h3>${item.item_name}</h3>
+            <p>₹${item.estimated_cost || 0}</p>
+          </div>
+        </div>
+        ${currentUser.role === "admin" ? `<button class="del-btn" onclick="deleteShopping(${item.id})">🗑</button>` : ""}
+      `;
+      list.appendChild(div);
+    });
+    document.getElementById("shop-total").textContent = "₹" + total.toLocaleString();
+  }
+
+  async function addShopping() {
+    const body = {
+      item_name: document.getElementById("shop-name").value,
+      estimated_cost: parseFloat(document.getElementById("shop-cost").value) || 0,
+      added_by: currentUser.id
+    };
+    await fetch(`${API}/shopping`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    document.getElementById("shop-name").value = "";
+    document.getElementById("shop-cost").value = "";
+    loadShopping();
+  }
+
+  async function toggleShopping(id) {
+    await fetch(`${API}/shopping/${id}/toggle`, { method: "PUT" });
+    loadShopping();
+  }
+
+  async function deleteShopping(id) {
+    await fetch(`${API}/shopping/${id}`, { method: "DELETE" });
+    loadShopping();
+  }
+
+  // ===== HELPER =====
+  function daysUntil(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr); const now = new Date();
+    d.setHours(0,0,0,0); now.setHours(0,0,0,0);
+    return Math.round((d - now) / 86400000);
+  }
+</script>
+</body>
+</html>
