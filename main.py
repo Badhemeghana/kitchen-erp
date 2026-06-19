@@ -20,8 +20,8 @@ app.add_middleware(
 )
 
 @app.get("/")
-  def root():
-      return {"message": "Kitchen ERP API is running ✅", "docs": "/docs"}
+def root():
+    return {"message": "Kitchen ERP API is running", "docs": "/docs"}
 
 
 # Database session for each request
