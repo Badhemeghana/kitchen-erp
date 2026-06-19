@@ -175,7 +175,7 @@ function getLang() {
     const pass = document.getElementById("login-pass").value.trim();
     if (!name || !pass) { document.getElementById("login-error").textContent = "Please enter name and password"; return; }
     try {
-      const res = await fetch(`${API}/login?name=${encodeURIComponent(name)}&password=${encodeURIComponent(pass)}`, { method: "POST" });
+     const res = await fetch(`${API}/login?name=${name}&password=${pass}`, { method: "POST" });
       if (!res.ok) { document.getElementById("login-error").textContent = "Wrong name or password. Try again."; return; }
       currentUser = await res.json();
       document.getElementById("login-page").style.display = "none";
