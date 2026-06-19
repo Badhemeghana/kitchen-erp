@@ -19,6 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+  def root():
+      return {"message": "Kitchen ERP API is running ✅", "docs": "/docs"}
+
+
 # Database session for each request
 def get_db():
     db = SessionLocal()
