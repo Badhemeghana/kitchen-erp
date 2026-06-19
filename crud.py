@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 import models, schemas
 
@@ -6,7 +7,7 @@ def get_users(db: Session):
     return db.query(models.User).all()
 
 def get_user_by_name(db: Session, name: str):
-    return db.query(models.User).filter(models.User.name == name).first()
+    return db.query(models.User).filter(func.lower(models.User.name) == name.lower()).first()
 
 def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(**user.dict())

@@ -126,3 +126,11 @@ def voice_command(payload: dict, db: Session = Depends(get_db)):
         crud.create_shopping_item(db, item)
         return {"success": True, "action": "shopping", "item": item_name,
                 "message": f"🛒 '{item_name}' Shopping list కి add అయింది!"}
+@app.put("/users/{user_id}/password")
+def update_password(user_id: int, new_password: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.password = new_password
+        db.commit()
+        return {"ok": True, "message": "Password updated"}
+    raise HTTPException(status_code=404, detail="User not found")
